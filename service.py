@@ -24,7 +24,7 @@ import xbmcaddon
 import simplejson
 import socket
 import re
-import urllib2
+import urllib.request
 from xml.dom.minidom import parseString
 import base64
 import uuid
@@ -212,11 +212,11 @@ def discoverTVip():
             xbmc.log('tvip: ' + str(tvip), xbmc.LOGDEBUG)
             tvFriendlyName = settings.getLocalizedString(30503) #Unknown
             try:
-                tvXML = urllib2.urlopen(tvXMLloc).read()
+                tvXML = urllib.request.urlopen(tvXMLloc).read()
                 xbmc.log('tvXML: ' + str(tvXML), xbmc.LOGDEBUG)
                 tvXMLdom = parseString(tvXML)
                 tvFriendlyName = tvXMLdom.getElementsByTagName('friendlyName')[0].childNodes[0].toxml()
-            except urllib2.HTTPError as e:
+            except urllib.request.HTTPError as e:
                 if e.code == 401:
                     # If Remote Access has been denied - we cannot even read the description
                     tvFriendlyName = settings.getLocalizedString(30501) #Access Denied. Check Permissions
@@ -265,8 +265,8 @@ def sendMessage(payload):
     try:
         settings.sock.setblocking(1)
         settings.sock.send(thisMessage)
-    except socket.error, (value,message):
-        xbmc.log('Failed to send: ' + thisMessage.encode('hex') + ' due to socket error: ' + str(value) + ': ' + str(message), xbmc.LOGERROR)
+    except socket.error as e:
+        xbmc.log('Failed to send: ' + thisMessage.encode('hex') + ': ' + repr(e), xbmc.LOGERROR)
         return ''
     ready = select.select([settings.sock], [], [], 10)[0]
     if ready:
