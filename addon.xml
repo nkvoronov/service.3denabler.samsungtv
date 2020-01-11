@@ -2,7 +2,7 @@
 <addon
 	id="service.3denabler.samsungtv"
 	name="3D Enabler Samsung TV"
-	version="0.1.2.005"
+	version="0.1.2.006"
 	provider-name="Pavel Kuzub, YLLOW_DRAGON">
 	<requires>
 		<import addon="xbmc.python" version="3.0.0"/>
@@ -23,5 +23,8 @@
 		<forum>http://forum.xbmc.org/showthread.php?tid=185212</forum>
 		<email>nkvoronov@gmail.com</email>
 		<source>https://github.com/nkvoronov/service.3denabler.samsungtv.git</source>
+		<assets>
+			<icon>resources/icon.png</icon>
+		</assets>
 	</extension>
 </addon>

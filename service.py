@@ -29,12 +29,9 @@ from xml.dom.minidom import parseString
 import base64
 import uuid
 import select
+import resources.lib.ssdp
 
 __addon__   = xbmcaddon.Addon()
-libs = os.path.join(__addon__.getAddonInfo('path'), 'lib')
-sys.path.append(libs)
-
-import ssdp
 
 keyMap = {
           '3D'      :'KEY_PANNEL_CHDOWN',
