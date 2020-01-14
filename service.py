@@ -29,7 +29,7 @@ from xml.dom.minidom import parseString
 import base64
 import uuid
 import select
-import resources.lib.ssdp
+import resources.lib.ssdp as ssdp
 
 __addon__   = xbmcaddon.Addon()
 
@@ -94,7 +94,7 @@ class Settings(object):
     def getSetting(self, name, dataType = str):
         value = __addon__.getSetting(name)
         if dataType == bool:
-            if value.lower() == 'true':
+            if value.lower() == "true":
                 value = True
             else:
                 value = False
@@ -102,18 +102,18 @@ class Settings(object):
             value = int(value)
         else:
             value = str(value)
-        xbmc.log('getSetting:' + str(name) + '=' + str(value), xbmc.LOGDEBUG)
+        xbmc.log("getSetting:" + str(name) + "=" + str(value), xbmc.LOGDEBUG)
         return value
     
     def setSetting(self, name, value):
         if type(value) == bool:
             if value:
-                value = 'true'
+                value = "true"
             else:
-                value = 'false'
+                value = "false"
         else:
             value = str(value)
-        xbmc.log('setSetting:' + str(name) + '=' + str(value), xbmc.LOGDEBUG)
+        xbmc.log("setSetting:" + str(name) + "=" + str(value), xbmc.LOGDEBUG)
         __addon__.setSetting(name, value)
     
     def getLocalizedString(self, stringid):
@@ -148,7 +148,7 @@ def notify(timeout = 5000):
     if len(settings.notifymessage) == 0:
         return
     if settings.notifications:
-        xbmc.executebuiltin('Notification(%s, %s, %d, %s)'%(settings.addonname, settings.notifymessage, timeout, settings.icon))
+        xbmc.executebuiltin("Notification(%s, %s, %d, %s)"%(settings.addonname, settings.notifymessage, timeout, settings.icon))
     xbmc.log('NOTIFY: ' + settings.notifymessage, xbmc.LOGINFO)
     settings.notifymessage = ''
 
@@ -156,11 +156,11 @@ def getStereoscopicMode():
     query = '{"jsonrpc": "2.0", "method": "GUI.GetProperties", "params": {"properties": ["stereoscopicmode"]}, "id": 1}'
     result = xbmc.executeJSONRPC(query)
     json = simplejson.loads(result)
-    xbmc.log('Received JSON response: ' + str(json), xbmc.LOGDEBUG)
+    xbmc.log("Received JSON response: " + str(json), xbmc.LOGDEBUG)
     ret = 'unknown'
-    if json.has_key('result'):
-        if json['result'].has_key('stereoscopicmode'):
-            if json['result']['stereoscopicmode'].has_key('mode'):
+    if 'result' in json:
+        if 'stereoscopicmode' in json['result']:
+            if 'mode' in json['result']['stereoscopicmode']:
                 ret = json['result']['stereoscopicmode']['mode'].encode('utf-8')
     # "off", "split_vertical", "split_horizontal", "row_interleaved"
     # "hardware_based", "anaglyph_cyan_red", "anaglyph_green_magenta", "monoscopic"
@@ -203,14 +203,14 @@ def discoverTVip():
         
     for tvdevice in dicovered:
         tvXMLloc = tvdevice.location
-        xbmc.log('tvXMLloc: ' + str(tvXMLloc), xbmc.LOGDEBUG)
+        xbmc.log("tvXMLloc: " + str(tvXMLloc), xbmc.LOGDEBUG)
         tvip = getIPfromString(tvXMLloc)
         if tvip:
-            xbmc.log('tvip: ' + str(tvip), xbmc.LOGDEBUG)
+            xbmc.log("tvip: " + str(tvip), xbmc.LOGDEBUG)
             tvFriendlyName = settings.getLocalizedString(30503) #Unknown
             try:
                 tvXML = urllib.request.urlopen(tvXMLloc).read()
-                xbmc.log('tvXML: ' + str(tvXML), xbmc.LOGDEBUG)
+                xbmc.log("tvXML: " + str(tvXML), xbmc.LOGDEBUG)
                 tvXMLdom = parseString(tvXML)
                 tvFriendlyName = tvXMLdom.getElementsByTagName('friendlyName')[0].childNodes[0].toxml()
             except urllib.request.HTTPError as e:
@@ -219,7 +219,7 @@ def discoverTVip():
                     tvFriendlyName = settings.getLocalizedString(30501) #Access Denied. Check Permissions
                 else:
                     toNotify(settings.getLocalizedString(30502) + ' ' + str(e))
-                    xbmc.log('HTTP Error ' + str(e), xbmc.LOGERROR)
+                    xbmc.log("HTTP Error " + str(e), xbmc.LOGERROR)
             except:
                 xbmc.log('Exception getting friendly name', xbmc.LOGERROR)
             if tvip not in tvdevicesIPs:
@@ -227,7 +227,7 @@ def discoverTVip():
                 tvdevicesNames.append(tvFriendlyName + ' @ ' + tvip)
                 tvdevices.append([tvip, tvFriendlyName])
     
-    xbmc.log('Discovered devices count: ' + str(len(tvdevices)), xbmc.LOGINFO)
+    xbmc.log("Discovered devices count: " + str(len(tvdevices)), xbmc.LOGINFO)
         
     if len(tvdevices) > 1:
         myselect = dialog.select(settings.getLocalizedString(30514), tvdevicesNames) #Select your TV device
@@ -250,7 +250,7 @@ def getPayloads(response = ''):
         payl = response[5+strLen:5+strLen+paylLen]
         response = response[5+strLen+paylLen:]
         payloads.append(payl)
-        xbmc.log('Payload: ' + payl.encode('hex'), xbmc.LOGDEBUG)
+        xbmc.log("Payload: " + payl.encode('hex'), xbmc.LOGDEBUG)
         if xbmc.abortRequested: break
     return payloads
 
@@ -263,7 +263,7 @@ def sendMessage(payload):
         settings.sock.setblocking(1)
         settings.sock.send(thisMessage)
     except socket.error as e:
-        xbmc.log('Failed to send: ' + thisMessage.encode('hex') + ': ' + repr(e), xbmc.LOGERROR)
+        xbmc.log("Failed to send: " + thisMessage.encode('hex') + ': ' + repr(e), xbmc.LOGERROR)
         return ''
     ready = select.select([settings.sock], [], [], 10)[0]
     if ready:
@@ -319,10 +319,10 @@ def authenticate():
             return authenticate()
         return False
     elif responseMap.granted in responsePayloads:
-        xbmc.log('authenticate() returned: True', xbmc.LOGDEBUG)
+        xbmc.log("authenticate() returned: True", xbmc.LOGDEBUG)
         return True
     else:
-        xbmc.log('authenticate() returned: False', xbmc.LOGDEBUG)
+        xbmc.log("authenticate() returned: False", xbmc.LOGDEBUG)
         toNotify(settings.getLocalizedString(30509)) #Authentication Failed
         return False
 
@@ -337,17 +337,17 @@ def connectTV():
     if bool(settings.ipaddress):
         settings.sock = newSock()
         try:
-            xbmc.log('Connecting to:' + str(settings.ipaddress) + ':' + str(port), xbmc.LOGDEBUG)
+            xbmc.log("Connecting to:" + str(settings.ipaddress) + ":" + str(port), xbmc.LOGDEBUG)
             settings.sock.connect((settings.ipaddress, port))
             return True
         except:
-            xbmc.log('TV is Off or IP is outdated', xbmc.LOGINFO)
+            xbmc.log("TV is Off or IP is outdated", xbmc.LOGINFO)
     if settings.discover:
         tv = discoverTVip()
         if tv:
             settings.sock = newSock()
             try:
-                xbmc.log('Connecting to:' + str(tv[0]) + ':' + str(port), xbmc.LOGDEBUG)
+                xbmc.log("Connecting to:" + str(tv[0]) + ":" + str(port), xbmc.LOGDEBUG)
                 settings.sock.connect((tv[0], port))
                 settings.ipaddress = tv[0]
                 settings.tvname = tv[1]
@@ -355,13 +355,13 @@ def connectTV():
                 settings.setSetting('tvname', settings.tvname)
                 return True
             except:
-                xbmc.log('TV is Off or IP is outdated', xbmc.LOGINFO)
+                xbmc.log("TV is Off or IP is outdated", xbmc.LOGINFO)
                 toNotify(settings.getLocalizedString(30508)) #Connection Failed
         else:
-            xbmc.log('TV has not been discovered', xbmc.LOGINFO)
+            xbmc.log("TV has not been discovered", xbmc.LOGINFO)
             toNotify(settings.getLocalizedString(30506)) #TV has not been discovered
     else:
-        xbmc.log('Cannot connect. Discovery is turned off', xbmc.LOGINFO)
+        xbmc.log("Cannot connect. Discovery is turned off", xbmc.LOGINFO)
         toNotify(settings.getLocalizedString(30507)) #Discovery is turned off
     return False
 
@@ -371,38 +371,38 @@ def processSequence(commandSequence):
     for x in commandSequence.split(','):
         thisKey = x.strip().upper()
         if thisKey in keyMap:
-            xbmc.log('Sending ' + thisKey + ' as Key: ' + keyMap[thisKey], xbmc.LOGDEBUG)
+            xbmc.log("Sending " + thisKey + " as Key: " + keyMap[thisKey], xbmc.LOGDEBUG)
             sendKey(keyMap[thisKey])
         elif thisKey[:3] == 'KEY':
-            xbmc.log('Sending Key: ' + thisKey, xbmc.LOGDEBUG)
+            xbmc.log("Sending Key: " + thisKey, xbmc.LOGDEBUG)
             sendKey(thisKey)
         elif thisKey == 'PAUSE':
             if settings.pause:
                 if xbmc.Player().isPlayingVideo():
                     if not xbmc.getCondVisibility('Player.Paused'):
-                        xbmc.log('Pause XBMC', xbmc.LOGDEBUG)
+                        xbmc.log("Pause KODI", xbmc.LOGDEBUG)
                         xbmc.Player().pause()
                         putOnPause = True
         elif thisKey == 'PLAY':
             if settings.pause:
                 if xbmc.Player().isPlayingVideo():
                     if xbmc.getCondVisibility('Player.Paused'):
-                        xbmc.log('Resume XBMC', xbmc.LOGDEBUG)
+                        xbmc.log("Resume KODI", xbmc.LOGDEBUG)
                         if putOnPause: xbmc.Player().pause()
         elif thisKey[:1] == 'P':
-            xbmc.log('Waiting for ' + thisKey[1:] + ' milliseconds', xbmc.LOGDEBUG)
+            xbmc.log("Waiting for " + thisKey[1:] + " milliseconds", xbmc.LOGDEBUG)
             xbmc.sleep(int(thisKey[1:]))
         elif thisKey == 'BLACKON':
             if settings.black:
-                xbmc.log('Screen to Black', xbmc.LOGDEBUG)
+                xbmc.log("Screen to Black", xbmc.LOGDEBUG)
                 blackScreen.show()
         elif thisKey == 'BLACKOFF':
             if settings.black:
-                xbmc.log('Screen from Black', xbmc.LOGDEBUG)
+                xbmc.log("Screen from Black", xbmc.LOGDEBUG)
                 blackScreen.close()
         else:
-            xbmc.log('Unknown command: ' + thisKey, xbmc.LOGWARNING)
-    xbmc.log('Done with sequence')
+            xbmc.log("Unknown command: " + thisKey, xbmc.LOGWARNING)
+    xbmc.log("Done with sequence")
 
 def mainStereoChange():
     if stereoModeHasChanged():
@@ -414,7 +414,7 @@ def mainStereoChange():
             if settings.authCount > 1:
                 settings.newTVmode = getTranslatedStereoscopicMode()
             if stereoModeHasChanged():
-                xbmc.log('Stereoscopic Mode changed: curTVmode:newTVmode = ' + str(settings.curTVmode) + ':' + str(settings.newTVmode), xbmc.LOGDEBUG)
+                xbmc.log("Stereoscopic Mode changed: curTVmode:newTVmode = " + str(settings.curTVmode) + ":" + str(settings.newTVmode), xbmc.LOGDEBUG)
                 # Action Assignment
                 if settings.newTVmode == 1: commandSequence = settings.sequence3DTAB
                 elif settings.newTVmode == 2: commandSequence = settings.sequence3DSBS
@@ -429,9 +429,9 @@ def mainStereoChange():
                 processSequence(commandSequence)
                 # Saving current 3D mode
                 settings.curTVmode = settings.newTVmode
-                settings.setSetting('curTVmode', settings.newTVmode)
+                settings.setSetting("curTVmode", settings.newTVmode)
             else:
-                xbmc.log('Stereoscopic Mode is the same', xbmc.LOGINFO)
+                xbmc.log("Stereoscopic Mode is the same", xbmc.LOGINFO)
         
         else:
             toNotify(settings.getLocalizedString(30509)) #Authentication Failed
@@ -440,7 +440,7 @@ def mainStereoChange():
         if settings.sock:
             settings.sock.close()
     else:
-        xbmc.log('Stereoscopic mode has not changed', xbmc.LOGDEBUG)
+        xbmc.log("Stereoscopic mode has not changed", xbmc.LOGDEBUG)
     # Notify of all messages
     notify()
 
@@ -456,7 +456,7 @@ def onAbort():
     # On exit switch TV back to None 3D
     settings.newTVmode = 0
     if stereoModeHasChanged():
-        xbmc.log('Exit procedure: changing back to None 3D', xbmc.LOGINFO)
+        xbmc.log("Exit procedure: changing back to None 3D", xbmc.LOGINFO)
         mainStereoChange()
 
 def checkAndDiscover():
@@ -475,35 +475,35 @@ class MyMonitor(xbmc.Monitor):
         xbmc.Monitor.__init__(self)
     
     def onSettingsChanged( self ):
-        xbmc.log('Settings changed', xbmc.LOGDEBUG)
+        xbmc.log("Settings changed", xbmc.LOGDEBUG)
         settings.load()
         checkAndDiscover()
     
     def onScreensaverDeactivated(self):
         # If detect mode is poll only - do not react on events
         if settings.detectmode == 2: return
-        xbmc.log('Screensaver Deactivated', xbmc.LOGDEBUG)
+        xbmc.log("Screensaver Deactivated", xbmc.LOGDEBUG)
         settings.inScreensaver = False
     
     def onScreensaverActivated(self):
         # If detect mode is poll only - do not react on events
         if settings.detectmode == 2: return
-        xbmc.log('Screensaver Activated', xbmc.LOGDEBUG)
+        xbmc.log("Screensaver Activated", xbmc.LOGDEBUG)
         if settings.skipInScreensaver:
             settings.inScreensaver = True
     
     def onNotification(self, sender, method, data):
         # If detect mode is poll only - do not react on events
         if settings.detectmode == 2: return
-        xbmc.log('Notification Received: ' + str(sender) + ': ' + str(method) + ': ' + str(data), xbmc.LOGDEBUG)
+        xbmc.log("Notification Received: " + str(sender) + ": " + str(method) + ": " + str(data), xbmc.LOGDEBUG)
         if method == 'Player.OnPlay':
             if xbmc.Player().isPlayingVideo():
-                xbmc.log('Trigger: onNotification: ' + str(method), xbmc.LOGDEBUG)
+                xbmc.log("Trigger: onNotification: " + str(method), xbmc.LOGDEBUG)
                 #Small delay to ensure Stereoscopic Manager completed changing mode
                 xbmc.sleep(500)
                 mainTrigger()
         elif method == 'Player.OnStop':
-            xbmc.log('Trigger: onNotification: ' + str(method), xbmc.LOGDEBUG)
+            xbmc.log("Trigger: onNotification: " + str(method), xbmc.LOGDEBUG)
             #Small delay to ensure Stereoscopic Manager completed changing mode
             xbmc.sleep(500)
             mainTrigger()
@@ -529,5 +529,5 @@ def main():
         xbmc.sleep(1000)
     onAbort()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
