@@ -31,7 +31,7 @@ import uuid
 import select
 
 __addon__   = xbmcaddon.Addon()
-libs = os.path.join(os.path.join(__addon__.getAddonInfo('path'), 'resources'), 'lib')
+libs = os.path.join(__addon__.getAddonInfo('path'), 'resources', 'lib')
 sys.path.append(libs)
 
 import ssdp
