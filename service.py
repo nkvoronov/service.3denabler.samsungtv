@@ -29,7 +29,7 @@ from xml.dom.minidom import parseString
 import base64
 import uuid
 import select
-import resources.lib.ssdp as ssdp
+import lib.ssdp as ssdp
 
 __addon__   = xbmcaddon.Addon()
 
@@ -197,7 +197,7 @@ def discoverTVip():
         #dicovered = ssdp.discover('ssdp:all')
         #dicovered = ssdp.discover('urn:samsung.com:device:RemoteControlReceiver:1')
         dicovered = ssdp.discover(ssdpModeMap[settings.ssdpmode])
-        if xbmc.Monitor().abortRequested: break
+        if xbmc.Monitor().abortRequested(): break
         if len(dicovered) > 0: break
         if discoverCount > 2: break
         
@@ -251,7 +251,7 @@ def getPayloads(response = ''):
         response = response[5+strLen+paylLen:]
         payloads.append(payl)
         xbmc.log("Payload: " + payl.encode('hex'), xbmc.LOGDEBUG)
-        if xbmc.Monitor().abortRequested: break
+        if xbmc.Monitor().abortRequested(): break
     return payloads
 
 # Function to send generic message to TV
@@ -308,7 +308,7 @@ def authenticate():
                 response = settings.sock.recv(4096)
                 responsePayloads = getPayloads(response)
             if dialogprogress.iscanceled(): break
-            if xbmc.Monitor().abortRequested: break
+            if xbmc.Monitor().abortRequested(): break
     
     if progressDialogOpen:
         dialogprogress.close()
@@ -517,7 +517,7 @@ def main():
     settings = Settings()
     checkAndDiscover()
     monitor = MyMonitor()
-    while not xbmc.Monitor().abortRequested:
+    while not xbmc.Monitor().abortRequested():
         if settings.detectmode != 1:
             if not settings.inScreensaver:
                 settings.pollCount += 1
